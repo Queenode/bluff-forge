@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+:root {
+  --background: #03060a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: "Orbitron", "Chakra Petch", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.015em;
+  overflow-x: hidden;
+}
+
+/* Gaming Display Font Utility */
+.font-display {
+  font-family: "Orbitron", "Chakra Petch", sans-serif;
+}
+
+/* Gaming Neon & Metallic Text Effects */
+.text-glow-emerald {
+  text-shadow:
+    0 0 18px rgba(16, 185, 129, 0.65),
+    0 0 38px rgba(16, 185, 129, 0.3),
+    0 4px 18px rgba(0, 0, 0, 0.95);
+}
+
+.text-glow-white {
+  text-shadow:
+    0 0 16px rgba(255, 255, 255, 0.22),
+    0 4px 24px rgba(0, 0, 0, 0.95);
+}
+
+.text-glow-amber {
+  text-shadow:
+    0 0 18px rgba(245, 158, 11, 0.55),
+    0 4px 16px rgba(0, 0, 0, 0.9);
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #03060a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+
+/* Subtle cinematic breathing zoom anchored at bottom so vault coins stay framed */
+@keyframes ken-burns-subtle {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.03);
+  }
+}
+
+.animate-hero-breath {
+  transform-origin: 50% 85%;
+  animation: ken-burns-subtle 18s ease-in-out infinite alternate;
+}
+
+/* Smooth horizontal marquee for hero bottom ribbon */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Gaming Beveled / Chamfered Cut Corners */
+.clip-game-btn {
+  clip-path: polygon(
+    12px 0%,
+    100% 0%,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0% 100%,
+    0% 12px
+  );
+}
+
+.clip-game-card {
+  clip-path: polygon(
+    0% 0%,
+    calc(100% - 20px) 0%,
+    100% 20px,
+    100% 100%,
+    20px 100%,
+    0% calc(100% - 20px)
+  );
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Breach flash: full-screen red pulse when a guardian falls */
+@keyframes breach-flash {
+  0% { opacity: 0; }
+  10% { opacity: 0.55; }
+  30% { opacity: 0.15; }
+  45% { opacity: 0.45; }
+  100% { opacity: 0; }
+}
+.animate-breach-flash {
+  animation: breach-flash 1.6s ease-out forwards;
+}
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 3px); }
+  40% { transform: translate(5px, -4px); }
+  60% { transform: translate(-4px, -2px); }
+  80% { transform: translate(3px, 4px); }
+}
+.animate-shake {
+  animation: screen-shake 0.5s ease-in-out 2;
+}
+
+/* Pot growth pop */
+@keyframes pot-pop {
+  0% { transform: scale(1); color: inherit; }
+  30% { transform: scale(1.12); color: #34d399; }
+  100% { transform: scale(1); color: inherit; }
+}
+.animate-pot-pop {
+  display: inline-block;
+  animation: pot-pop 0.9s ease-out;
+}
+@keyframes float-up {
+  0% { opacity: 0; transform: translateY(6px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-28px); }
+}
+.animate-float-up {
+  animation: float-up 1.8s ease-out forwards;
+}
+
+.typing-caret::after {
+  content: '▌';
+  margin-left: 1px;
+  animation: caret-blink 0.8s steps(1) infinite;
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+
+/* Rubber stamp slam for cracked vaults */
+@keyframes stamp-slam {
+  0% { transform: rotate(-14deg) scale(2.6); opacity: 0; }
+  60% { transform: rotate(-14deg) scale(0.92); opacity: 1; }
+  80% { transform: rotate(-14deg) scale(1.04); }
+  100% { transform: rotate(-14deg) scale(1); opacity: 1; }
+}
+.stamp-slam { transform: rotate(-14deg); animation: stamp-slam 0.45s cubic-bezier(.2,1.4,.4,1) both; }
