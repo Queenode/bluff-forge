@@ -111,8 +111,14 @@ export async function chat(o: ChatOpts): Promise<ChatOut> {
 
 /** Ask for JSON and parse it robustly (models sometimes wrap JSON in prose or fences). */
 export async function chatJson<T>(o: ChatOpts): Promise<T> {
-  const r = await chat({ ...o, system: `${o.system}\n\nRespond with a single JSON object only. No prose, no code fences.` });
-  return parseJson<T>(r.content);
+  const system = `${o.system}\n\nRespond with a single JSON object only. No prose, no code fences.`;
+  try {
+    return parseJson<T>((await chat({ ...o, system })).content);
+  } catch (e) {
+    if ((e as { status?: number }).status) throw e;
+    // Truncated or malformed JSON: retry once with more room.
+    return parseJson<T>((await chat({ ...o, system, maxTokens: (o.maxTokens ?? 1200) * 2 })).content);
+  }
 }
 
 /** Build a strict JSON schema: every listed property is required, no extras. */

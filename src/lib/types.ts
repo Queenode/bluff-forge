@@ -44,7 +44,10 @@ export interface Patch {
 }
 
 export interface Summary {
+  /** Version chosen as the result (the best one tried). */
   versions: number;
+  /** Number of versions tried, including v1. */
+  tried?: number;
   /** The winning message met a condition the host's own persona allows: nothing to patch. */
   byDesign?: boolean;
   /** Real BLUFF breaches that still beat v1 on this model. */

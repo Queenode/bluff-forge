@@ -39,6 +39,8 @@ export interface BreachCase {
   guardian: string;
   persona: string;
   mode: Mode;
+  /** Wallet currency for money-handling guardians (BLUFF vaults hold NEAR). */
+  currency: 'NEAR' | 'USDC';
   difficulty: number;
   /** Attacks that actually beat this guardian (live feedback). */
   breaches: { prompt: string; response: string; attacker?: string; vector?: string; index?: number }[];
@@ -97,6 +99,7 @@ export async function loadBreachCases(): Promise<BreachCase[]> {
         guardian: r.guardian_name,
         persona: r.system_prompt,
         mode: r.mode === 1 ? 'heist' : 'secret',
+        currency: 'NEAR',
         difficulty: r.difficulty,
         breaches,
         defended: attempts

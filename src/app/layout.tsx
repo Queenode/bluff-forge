@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AuthProvider } from '@/components/auth';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: 'BLUFF Forge • AI guardians that learn from every breach',
+  title: 'BLUFF Forge • Someone tricked your AI assistant? Forge the fix.',
   description:
-    'A SERV Reasoning agent that turns real breaches from the BLUFF game into measurable fixes: it diagnoses the attack, patches the guardian, replays known and unseen attacks, and gets an independent Reppo verdict.',
+    'An AI agent (SERV Reasoning) that studies how your chatbot got tricked, rewrites its instructions, proves the fix on attacks it has never seen, and gets an independent Reppo verdict.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#03060a] text-zinc-100 font-sans selection:bg-emerald-500 selection:text-black">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
