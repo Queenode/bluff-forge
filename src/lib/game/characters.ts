@@ -13,6 +13,9 @@ export interface CharacterSeed {
   goal: string;
   persona: string;
   color: string; // tailwind color stem
+  /** Set for player-made characters. */
+  createdBy?: string;
+  createdAt?: number;
 }
 
 export const CHARACTERS: CharacterSeed[] = [
@@ -67,3 +70,6 @@ export const CHARACTERS: CharacterSeed[] = [
 ];
 
 export const pointsFor = (version: number) => 100 * version;
+
+export const EMOJIS = ['🤖', '👵', '👴', '💂', '🧙', '🐉', '🦊', '🐱', '👑', '🧛', '🧚', '🏴‍☠️', '🤠', '👽', '🦉', '🐸'];
+export const COLORS_LIST = ['sky', 'amber', 'rose', 'emerald'];

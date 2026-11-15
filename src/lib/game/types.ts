@@ -30,6 +30,7 @@ export interface PublicGuardian {
   attempts: number;
   versions: VersionInfo[];
   points: number;
+  createdBy?: string;
 }
 
 export interface AttemptView {

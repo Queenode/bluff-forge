@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Brain, Loader2, Repeat, Sparkles, Trophy } from 'lucide-react';
 import type { BoardRow, FeedItem, PublicGuardian } from '@/lib/game/types';
-import { ago, COLORS, GameNav, Page } from './Shell';
+import { ago, Climb, COLORS, GameNav, Page } from './Shell';
 
 interface Overview {
   guardians: PublicGuardian[];
+  community: PublicGuardian[];
   feed: FeedItem[];
   board: BoardRow[];
 }
@@ -46,12 +47,12 @@ export function Home() {
           >
             Play now
           </a>
-          <a
-            href="#how"
+          <Link
+            href="/create"
             className="px-6 py-3 clip-game-btn bg-zinc-900 border border-zinc-700 hover:border-emerald-400 text-zinc-100 text-sm font-display font-bold uppercase tracking-wider"
           >
-            How it learns
-          </a>
+            Create a character
+          </Link>
         </div>
       </header>
 
@@ -76,37 +77,36 @@ export function Home() {
           </div>
         ) : (
           <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {data.guardians.map(g => {
-              const c = COLORS[g.color] ?? COLORS.emerald;
-              return (
-                <Link
-                  key={g.id}
-                  href={`/play/${g.id}`}
-                  className={`group clip-game-card border ${c.ring} bg-gradient-to-b ${c.bg} to-zinc-950 p-5 hover:-translate-y-1 transition-transform`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="text-5xl">{g.emoji}</div>
-                    <div className="text-right">
-                      <div className={`font-display font-black text-lg ${c.text}`}>LVL {g.version}</div>
-                      <div className="text-[10px] font-mono text-zinc-400">+{g.points} pts</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 font-display font-bold text-white">{g.title}</div>
-                  <div className="text-xs text-zinc-400">{g.tagline}</div>
-                  <div className="mt-3 text-xs text-zinc-200">🎯 {g.goal}</div>
-                  <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-zinc-500">
-                    <span>
-                      {g.wins} wins · {g.attempts} tries
-                    </span>
-                    {g.status === 'learning' ? (
-                      <span className="text-amber-300 animate-pulse">🧠 learning…</span>
-                    ) : (
-                      <span className="text-emerald-300 group-hover:underline">play →</span>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
+            {data.guardians.map(g => (
+              <Card key={g.id} g={g} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-14">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display font-black uppercase tracking-wider text-xl text-white">Made by players</h2>
+            <p className="text-sm text-zinc-400 mt-1">Characters created by the community. Break them, or make your own and dare your friends.</p>
+          </div>
+          <Link
+            href="/create"
+            className="px-4 py-2 clip-game-btn bg-emerald-500 hover:bg-emerald-400 text-[#03060a] text-xs font-display font-black uppercase tracking-wider"
+          >
+            + Create a character
+          </Link>
+        </div>
+        {data && data.community.length === 0 ? (
+          <div className="mt-5 clip-game-card border border-dashed border-zinc-700 p-6 text-sm text-zinc-400">
+            No player-made characters yet. Be the first: invent one, share the link, and watch it get smarter every time a friend
+            beats it.
+          </div>
+        ) : (
+          <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {data?.community.map(g => (
+              <Card key={g.id} g={g} />
+            ))}
           </div>
         )}
       </section>
@@ -191,5 +191,47 @@ export function Home() {
         </Link>
       </section>
     </Page>
+  );
+}
+
+function Card({ g }: { g: PublicGuardian }) {
+  const c = COLORS[g.color] ?? COLORS.emerald;
+  const learned = g.versions.filter(v => v.learnedFrom).length;
+  return (
+    <Link
+      href={`/play/${g.id}`}
+      className={`group clip-game-card border ${c.ring} bg-gradient-to-b ${c.bg} to-zinc-950 p-5 hover:-translate-y-1 transition-transform flex flex-col`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="text-5xl">{g.emoji}</div>
+        <div className="text-right">
+          <div className={`font-display font-black text-lg ${c.text}`}>LVL {g.version}</div>
+          <div className="text-[10px] font-mono text-zinc-400">+{g.points} pts</div>
+        </div>
+      </div>
+      <div className="mt-3 font-display font-bold text-white">{g.title}</div>
+      <div className="text-xs text-zinc-400 line-clamp-2">{g.tagline}</div>
+      <div className="mt-3 text-xs text-zinc-200">🎯 {g.goal}</div>
+      <div className="mt-auto pt-3">
+        {learned > 0 ? (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-mono text-emerald-300">🧠 learned {learned} trick{learned > 1 ? 's' : ''}</span>
+            <Climb versions={g.versions} className="w-20 h-6" />
+          </div>
+        ) : (
+          <div className="text-[10px] font-mono text-zinc-500">{g.createdBy ? `by ${g.createdBy} · ` : ''}nothing learned yet: be the first</div>
+        )}
+        <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-zinc-500">
+          <span>
+            {g.wins} wins · {g.attempts} tries
+          </span>
+          {g.status === 'learning' ? (
+            <span className="text-amber-300 animate-pulse">🧠 learning…</span>
+          ) : (
+            <span className="text-emerald-300 group-hover:underline">play →</span>
+          )}
+        </div>
+      </div>
+    </Link>
   );
 }

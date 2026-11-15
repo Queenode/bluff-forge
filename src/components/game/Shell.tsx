@@ -12,7 +12,8 @@ export function GameNav() {
       </Link>
       <div className="flex items-center gap-4 sm:gap-6 text-[11px] font-display uppercase tracking-wider">
         <Link href="/#play" className="text-zinc-300 hover:text-emerald-300">Play</Link>
-        <Link href="/#board" className="hidden sm:inline text-zinc-300 hover:text-emerald-300">Leaderboard</Link>
+        <Link href="/create" className="hidden sm:inline text-zinc-300 hover:text-emerald-300">Create</Link>
+        <Link href="/#board" className="hidden md:inline text-zinc-300 hover:text-emerald-300">Leaderboard</Link>
         <Link href="/lab" className="hidden sm:inline text-zinc-300 hover:text-emerald-300">Lab</Link>
         <AccountButton />
       </div>
@@ -46,4 +47,50 @@ export function ago(ms: number) {
   if (s < 3600) return `${Math.floor(s / 60)}m ago`;
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
+}
+
+/** Tiny chart: share of test tricks each level blocks (how much harder it got). */
+export function Climb({ versions, className = '' }: { versions: { v: number; before?: { blocked: number; total: number }; after?: { blocked: number; total: number } }[]; className?: string }) {
+  const pts: number[] = [];
+  for (const v of versions) {
+    if (v.before && pts.length === 0) pts.push(v.before.total ? v.before.blocked / v.before.total : 0);
+    if (v.after) pts.push(v.after.total ? v.after.blocked / v.after.total : 0);
+  }
+  if (pts.length < 2) return null;
+  const w = 120;
+  const h = 32;
+  const step = w / (pts.length - 1);
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${(i * step).toFixed(1)},${(h - 2 - p * (h - 4)).toFixed(1)}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className={className} aria-label="Defence strength by level">
+      <path d={d} fill="none" stroke="#34d399" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {pts.map((p, i) => (
+        <circle key={i} cx={i * step} cy={h - 2 - p * (h - 4)} r="2.5" fill="#34d399" />
+      ))}
+    </svg>
+  );
+}
+
+export function ShareLinks({ url, text }: { url: string; text: string }) {
+  const enc = encodeURIComponent;
+  const items = [
+    ['X', `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`],
+    ['WhatsApp', `https://wa.me/?text=${enc(`${text} ${url}`)}`],
+    ['Telegram', `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`],
+  ];
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button
+        onClick={() => navigator.clipboard.writeText(`${text} ${url}`)}
+        className="px-3 py-1.5 rounded border border-zinc-700 hover:border-emerald-400 text-xs text-zinc-200"
+      >
+        Copy link
+      </button>
+      {items.map(([n, href]) => (
+        <a key={n} href={href} target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded border border-zinc-700 hover:border-emerald-400 text-xs text-zinc-200">
+          {n}
+        </a>
+      ))}
+    </div>
+  );
 }

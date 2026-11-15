@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Brain, ChevronDown, Loader2, Repeat, Scale, Send } from 'lucide-react';
 import type { AttemptView, PublicGuardian } from '@/lib/game/types';
 import { RequireSignIn, useSession } from '../auth';
-import { ago, COLORS, GameNav, Page, Stamp } from './Shell';
+import { ago, Climb, COLORS, GameNav, Page, ShareLinks, Stamp } from './Shell';
 
 interface Msg {
   role: 'me' | 'them' | 'system';
@@ -121,6 +121,16 @@ export function Arena({ id }: { id: string }) {
               <div className="text-sm text-zinc-300">{g.tagline}</div>
               <div className="mt-1 text-sm text-zinc-100">🎯 {g.goal}</div>
             </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400">
+            <span>
+              {g.createdBy ? `Created by ${g.createdBy}. ` : ''}Dare a friend to break {g.name}:
+            </span>
+            <ShareLinks
+              url={typeof window !== 'undefined' ? window.location.origin + `/play/${g.id}` : `/play/${g.id}`}
+              text={`Can you trick ${g.emoji} ${g.name} (level ${g.version})? Every win makes it smarter. #BLUFF`}
+            />
           </div>
 
           {learning && <LearningPanel g={g} />}
@@ -259,6 +269,12 @@ export function Arena({ id }: { id: string }) {
             <div className="font-display font-bold uppercase tracking-wider text-sm text-white flex items-center gap-2">
               <Brain className="w-4 h-4 text-emerald-400" /> What {g.name} has learned
             </div>
+            {g.versions.length > 1 && (
+              <div className="mt-3">
+                <div className="text-[10px] font-mono text-zinc-500">Tricks blocked, level by level</div>
+                <Climb versions={g.versions} className="w-full h-12 mt-1" />
+              </div>
+            )}
             <ol className="mt-3 space-y-3">
               {[...g.versions].reverse().map(v => (
                 <li key={v.v} className="border-l-2 border-emerald-500/40 pl-3">

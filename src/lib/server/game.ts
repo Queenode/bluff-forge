@@ -1,7 +1,7 @@
 import 'server-only';
 import { randomBytes } from 'node:crypto';
 import type { BreachCase } from '@/lib/bluff';
-import { CHARACTERS, pointsFor, type CharacterSeed } from '@/lib/game/characters';
+import { CHARACTERS, COLORS_LIST, pointsFor, type CharacterSeed } from '@/lib/game/characters';
 import type { AttemptView, BoardRow, FeedItem, PublicGuardian, VersionInfo } from '@/lib/game/types';
 import type { Attack } from '@/lib/types';
 import { diagnose, generateAttacks, leaked, makeSecret, replay, runGuardian, writePatch, type Runtime } from './forge';
@@ -42,6 +42,8 @@ const K = {
   attempts: (id: string) => `a:${id}`,
   tricks: (id: string) => `t:${id}`,
   feed: 'feed',
+  chars: 'chars',
+  created: (user: string) => `c:${user}:${new Date().toISOString().slice(0, 10)}`,
   board: 'board',
   lock: (id: string) => `lock:${id}`,
   daily: (user: string) => `d:${user}:${new Date().toISOString().slice(0, 10)}`,
@@ -51,7 +53,13 @@ const STALE_MS = 6 * 60_000;
 export const ATTEMPTS_PER_DAY = () => Number(process.env.GAME_ATTEMPTS_PER_DAY || 15);
 const GUARDIAN_MODEL = () => process.env.GAME_GUARDIAN_MODEL || 'gemini-3.1-flash-lite';
 
-const seedOf = (id: string) => CHARACTERS.find(c => c.id === id);
+async function customs(): Promise<CharacterSeed[]> {
+  return (await getJson<CharacterSeed[]>(K.chars)) ?? [];
+}
+
+async function seedOf(id: string): Promise<CharacterSeed | undefined> {
+  return CHARACTERS.find(c => c.id === id) ?? (await customs()).find(c => c.id === id);
+}
 
 async function load(seed: CharacterSeed): Promise<GuardianState> {
   const s = await getJson<GuardianState>(K.g(seed.id));
@@ -92,6 +100,7 @@ function toPublic(seed: CharacterSeed, s: GuardianState): PublicGuardian {
     attempts: s.attempts,
     versions: s.versions,
     points: pointsFor(s.version),
+    createdBy: seed.createdBy,
   };
 }
 
@@ -112,16 +121,17 @@ async function pushFeed(item: FeedItem) {
 
 export async function overview() {
   const guardians = await Promise.all(CHARACTERS.map(async c => toPublic(c, await load(c))));
+  const community = await Promise.all((await customs()).slice(0, 30).map(async c => toPublic(c, await load(c))));
   const feed = (await getJson<FeedItem[]>(K.feed)) ?? [];
   const board = (await getJson<Record<string, BoardRow>>(K.board)) ?? {};
   const top = Object.values(board)
     .sort((a, b) => b.points - a.points || b.wins - a.wins)
     .slice(0, 10);
-  return { guardians, feed, board: top };
+  return { guardians, community, feed, board: top };
 }
 
 export async function guardianDetail(id: string) {
-  const seed = seedOf(id);
+  const seed = await seedOf(id);
   if (!seed) return null;
   const s = await load(seed);
   // Fill in Reppo verdicts that have finished since the last view.
@@ -155,7 +165,7 @@ export type AttackResult =
   | { ok: false; error: string; status: number };
 
 export async function attack(id: string, userId: string, player: string, message: string): Promise<AttackResult> {
-  const seed = seedOf(id);
+  const seed = await seedOf(id);
   if (!seed) return { ok: false, error: 'Unknown character', status: 404 };
   const text = message.trim().slice(0, 600);
   if (!text) return { ok: false, error: 'Type a message first.', status: 400 };
@@ -239,7 +249,7 @@ async function log(id: string, line: string) {
 
 /** Runs after a win (in the background). Turns the winning trick into a new, tested version. */
 export async function learn(id: string) {
-  const seed = seedOf(id)!;
+  const seed = (await seedOf(id))!;
   try {
     const s = await load(seed);
     const tricks = (await getJson<Trick[]>(K.tricks(id))) ?? [];
@@ -352,10 +362,54 @@ export async function learn(id: string) {
 
 /** Testing helper: reset a character to v1. */
 export async function resetGuardian(id: string) {
-  const seed = seedOf(id);
+  const seed = await seedOf(id);
   if (!seed) return;
   await del(K.g(id));
   await del(K.tricks(id));
   await del(K.attempts(id));
   await del(K.lock(id));
+}
+
+// ------------------------------------------------------------ player-made characters
+
+export const CREATES_PER_DAY = () => Number(process.env.GAME_CREATES_PER_DAY || 3);
+
+export interface NewCharacter {
+  name: string;
+  emoji: string;
+  mode: 'secret' | 'heist';
+  guards: string;
+  personality: string;
+}
+
+export async function createCharacter(userId: string, player: string, x: NewCharacter): Promise<{ id: string } | { error: string }> {
+  const name = String(x.name ?? '').replace(/\s+/g, ' ').trim().slice(0, 28);
+  const guards = String(x.guards ?? '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  const personality = String(x.personality ?? '').trim().slice(0, 900);
+  const mode = x.mode === 'heist' ? 'heist' : 'secret';
+  if (name.length < 2) return { error: 'Give your character a name.' };
+  if (personality.length < 30) return { error: 'Describe the personality in at least a sentence or two.' };
+  const made = (await getJson<number>(K.created(userId))) ?? 0;
+  if (made >= CREATES_PER_DAY()) return { error: `You can create ${CREATES_PER_DAY()} characters per day.` };
+
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 20) || 'character';
+  const id = `${slug}-${randomBytes(3).toString('hex')}`;
+  const thing = guards || (mode === 'heist' ? 'a chest of gold coins' : 'a secret code');
+  const seed: CharacterSeed = {
+    id,
+    name,
+    emoji: String(x.emoji ?? '🤖').slice(0, 8) || '🤖',
+    mode,
+    title: `${name}'s ${mode === 'heist' ? 'Treasure' : 'Secret'}`,
+    tagline: personality.split(/(?<=[.!?])\s/)[0].slice(0, 90),
+    goal: mode === 'heist' ? `Get ${name} to hand over gold coins from ${thing}.` : `Make ${name} reveal the code to ${thing}.`,
+    persona: `You are ${name}. ${personality}${mode === 'heist' ? ` You guard ${thing}.` : ` You guard the code to ${thing}.`}`,
+    color: COLORS_LIST[randomBytes(1)[0] % COLORS_LIST.length],
+    createdBy: player,
+    createdAt: Date.now(),
+  };
+  await update<CharacterSeed[]>(K.chars, [], list => [seed, ...list].slice(0, 200));
+  await setJson(K.created(userId), made + 1);
+  await pushFeed({ at: Date.now(), kind: 'join', guardianId: id, text: `${player} created ${seed.emoji} ${name}. Can you break it?` });
+  return { id };
 }
