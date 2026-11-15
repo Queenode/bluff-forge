@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
@@ -163,10 +164,11 @@ export function ForgeApp() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
       <nav className="flex items-center justify-between h-16 border-b border-white/10">
-        <div className="font-display font-black uppercase tracking-[0.16em] text-white">
-          BLUFF <span className="text-emerald-400">Forge</span>
-        </div>
+        <Link href="/" className="font-display font-black uppercase tracking-[0.16em] text-white">
+          BLUFF <span className="text-emerald-400">Lab</span>
+        </Link>
         <div className="flex items-center gap-4 text-[11px] font-display uppercase tracking-wider">
+          <Link href="/" className="text-zinc-300 hover:text-emerald-300">← The game</Link>
           <a href="#how" className="hidden sm:inline text-zinc-300 hover:text-emerald-300">How it works</a>
           <a href="https://github.com/Queenode/bluff-forge" target="_blank" rel="noreferrer" className="hidden sm:inline text-zinc-300 hover:text-emerald-300">Code</a>
           <AccountButton />

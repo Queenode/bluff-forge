@@ -4,9 +4,9 @@ import { AuthProvider } from '@/components/auth';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: 'BLUFF Forge • Someone tricked your AI assistant? Forge the fix.',
+  title: 'BLUFF • Trick the AI. Then watch it learn.',
   description:
-    'An AI agent (SERV Reasoning) that studies how your chatbot got tricked, rewrites its instructions, proves the fix on attacks it has never seen, and gets an independent Reppo verdict.',
+    'A web game: chat with AI characters who guard secrets and gold. Fool one and score points. Every win teaches it, live: a SERV Reasoning agent rewrites its defences and Reppo checks the fix.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,5 @@
 import 'server-only';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { auth, clerkClient, currentUser } from '@clerk/nextjs/server';
 
 /**
  * Accounts (email code or Google sign-in via Clerk). Each signed-in user gets a daily
@@ -73,3 +73,11 @@ export async function getHistory(userId: string): Promise<{ history: HistoryItem
 
 export const FORGE_PER_DAY = () => Number(process.env.FORGE_RUNS_PER_DAY || 5);
 export const REPPO_PER_DAY = () => Number(process.env.REPPO_EVALS_PER_DAY || 4);
+
+/** Public display name for the leaderboard (never the full email). */
+export async function displayName(userId: string): Promise<string> {
+  if (userId === DEV) return 'You (local)';
+  const u = await currentUser();
+  const email = u?.primaryEmailAddress?.emailAddress ?? '';
+  return (u?.username || u?.firstName || email.split('@')[0] || 'player').slice(0, 24);
+}
