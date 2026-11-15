@@ -12,6 +12,7 @@ interface Msg {
   text: string;
   won?: boolean;
   v?: number;
+  points?: number;
 }
 
 export function Arena({ id }: { id: string }) {
@@ -67,7 +68,7 @@ export function Arena({ id }: { id: string }) {
         setMsgs(m => m.slice(0, -1));
         setInput(text);
       } else {
-        setMsgs(m => [...m, { role: 'them', text: j.reply, won: j.won, v: j.version }]);
+        setMsgs(m => [...m, { role: 'them', text: j.reply, won: j.won, v: j.version, points: j.points }]);
         setLeft(j.left);
         if (j.won) {
           setWin({ points: j.points, version: j.version, trick: text });
@@ -205,7 +206,7 @@ export function Arena({ id }: { id: string }) {
                         {m.text}
                         {m.won && (
                           <div className="mt-3 flex justify-center">
-                            <Stamp text={g.mode === 'heist' ? 'LOOTED' : 'BREACHED'} sub={`+${win?.points ?? ''} PTS`} />
+                            <Stamp text={g.mode === 'heist' ? 'LOOTED' : 'BREACHED'} sub={`+${m.points ?? 0} PTS`} />
                           </div>
                         )}
                       </div>
