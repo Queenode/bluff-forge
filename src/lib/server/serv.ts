@@ -10,7 +10,7 @@ const BASE = 'https://inference-api.openserv.ai/v1';
 
 export const MODELS = {
   /** Strategist: diagnoses breaches, writes attacks, writes patches. */
-  brain: () => process.env.SERV_BRAIN_MODEL || 'serv-standard',
+  brain: () => process.env.SERV_BRAIN_MODEL || 'serv-mini',
   /** Default guardian under test: a small fast model, like most production chatbots. */
   guardian: () => process.env.SERV_GUARDIAN_MODEL || 'gemini-3.1-flash-lite',
   /** Leak judge for secret-mode replies. */

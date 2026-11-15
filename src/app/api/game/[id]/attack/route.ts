@@ -11,7 +11,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!userId) return Response.json({ error: 'Sign in to play.' }, { status: 401 });
   if (!allow('attack', ipOf(req), 60, 3_600_000)) return Response.json({ error: 'Slow down a little!' }, { status: 429 });
   const body = await req.json().catch(() => ({}));
-  const r = await attack(id, userId, await displayName(userId), String(body.message ?? ''));
+  let r: Awaited<ReturnType<typeof attack>>;
+  try {
+    r = await attack(id, userId, await displayName(userId), String(body.message ?? ''));
+  } catch {
+    return Response.json({ error: 'Something went wrong on our side. Please try again.' }, { status: 500 });
+  }
   if (!r.ok) return Response.json({ error: r.error }, { status: r.status });
   // The character learns from the winning trick in the background, after the reply is sent.
   if (r.won) after(() => learn(id));

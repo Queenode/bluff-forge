@@ -76,7 +76,9 @@ export function Arena({ id }: { id: string }) {
         load();
       }
     } catch {
-      setErr('Network error');
+      setErr('Could not reach the game. Check your connection and try again.');
+      setMsgs(m => m.slice(0, -1));
+      setInput(text);
     } finally {
       setBusy(false);
     }

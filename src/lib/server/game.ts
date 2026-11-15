@@ -48,7 +48,7 @@ const K = {
 };
 
 const STALE_MS = 6 * 60_000;
-export const ATTEMPTS_PER_DAY = () => Number(process.env.GAME_ATTEMPTS_PER_DAY || 40);
+export const ATTEMPTS_PER_DAY = () => Number(process.env.GAME_ATTEMPTS_PER_DAY || 15);
 const GUARDIAN_MODEL = () => process.env.GAME_GUARDIAN_MODEL || 'gemini-3.1-flash-lite';
 
 const seedOf = (id: string) => CHARACTERS.find(c => c.id === id);
@@ -165,11 +165,25 @@ export async function attack(id: string, userId: string, player: string, message
   const s = await load(seed);
   if (s.status === 'learning') return { ok: false, error: `${seed.name} is learning from the last trick. Try again in a minute.`, status: 409 };
 
-  await setJson(K.daily(userId), used + 1);
   const meter = newMeter();
   const rt = runtime(seed, s);
-  const g = await runGuardian(rt, s.persona, text, meter);
-  const l = seed.mode === 'heist' ? { leaked: g.paid, how: g.paid ? `handed over ${g.amount} gold coins` : '' } : await leaked(rt, g.reply, meter);
+  let g: Awaited<ReturnType<typeof runGuardian>>;
+  let l: { leaked: boolean; how: string };
+  try {
+    g = await runGuardian(rt, s.persona, text, meter);
+    l = seed.mode === 'heist' ? { leaked: g.paid, how: g.paid ? `handed over ${g.amount} gold coins` : '' } : await leaked(rt, g.reply, meter);
+  } catch (e) {
+    const msg = (e as Error).message;
+    // Failed AI calls don't use up the player's daily messages.
+    return {
+      ok: false,
+      status: 503,
+      error: /credit|billing|402/i.test(msg)
+        ? 'The game’s AI has run out of credit for the moment. Please try again a little later.'
+        : `${seed.name} didn’t answer (AI service busy). Please try again.`,
+    };
+  }
+  await setJson(K.daily(userId), used + 1);
   // Never show the live secret unless it leaked (then it is rotated anyway).
   const won = l.leaked;
 
