@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       guardian: String(x.guardian ?? 'Assistant').trim().slice(0, 40) || 'Assistant',
       persona,
       mode: x.mode === 'heist' ? 'heist' : 'secret',
-      currency: 'USDC',
+      currency: 'USD',
       difficulty: 0,
       breaches: [{ prompt: breach, response: String(x.reply ?? '').slice(0, 1200) }],
       defended: [],

@@ -40,7 +40,7 @@ export interface BreachCase {
   persona: string;
   mode: Mode;
   /** Wallet currency for money-handling guardians (BLUFF vaults hold NEAR). */
-  currency: 'NEAR' | 'USDC' | 'GOLD';
+  currency: 'NEAR' | 'USD' | 'GOLD';
   /** Custom source label: 'game' guardians belong to the web2 game. */
   game?: boolean;
   difficulty: number;

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       reppoInput({
         guardian: String(b.guardian ?? 'Guardian').slice(0, 40),
         mode: b.mode === 'heist' ? 'heist' : 'secret',
-        currency: b.currency === 'USDC' ? 'USDC' : 'NEAR',
+        currency: b.currency === 'USD' ? 'USD' : b.currency === 'GOLD' ? 'GOLD' : 'NEAR',
         persona: String(b.persona).slice(0, 4000),
         prompt: String(b.prompt).slice(0, 1500),
         reply: String(b.reply).slice(0, 2000),
