@@ -76,7 +76,7 @@ export const REPPO_PER_DAY = () => Number(process.env.REPPO_EVALS_PER_DAY || 4);
 
 /** Public display name for the leaderboard (never the full email). */
 export async function displayName(userId: string): Promise<string> {
-  if (userId === DEV) return 'You (local)';
+  if (userId === DEV) return 'local-tester';
   const u = await currentUser();
   const email = u?.primaryEmailAddress?.emailAddress ?? '';
   return (u?.username || u?.firstName || email.split('@')[0] || 'player').slice(0, 24);
